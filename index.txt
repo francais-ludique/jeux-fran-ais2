@@ -1,0 +1,442 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Bonjour - Français</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#e8f4ff,#f9edff);
+  color: #29334d;
+  padding: 20px;
+}
+.container {
+  max-width: 760px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 25px;
+  box-shadow: 0 8px 30px #263b5a20;
+}
+h1 { text-align:center; color:#6252bd; }
+.subtitle { text-align:center; color:#777; }
+.progress {
+  height: 12px;
+  background: #eee;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.progress-bar {
+  height: 100%;
+  width: 0;
+  background: #55bd8b;
+  transition: .3s;
+}
+.dialogue {
+  background: #f7f6ff;
+  padding: 18px;
+  border-radius: 18px;
+}
+.line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 2px solid #e8e5f8;
+  padding: 14px;
+  border-radius: 13px;
+  margin: 10px 0;
+  transition: .2s;
+}
+.line.active {
+  border-color: #7865d6;
+  background: #f1efff;
+}
+.line.done {
+  border-color: #55bd8b;
+  background: #edfff5;
+}
+.check {
+  font-size: 22px;
+  min-width: 26px;
+}
+.words {
+  flex: 1;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+button {
+  border: 0;
+  border-radius: 13px;
+  padding: 13px 19px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:disabled { opacity:.4; cursor:not-allowed; }
+.primary { background:#6858c9; color:white; }
+.secondary { background:#e9e6fa; color:#51439d; }
+.mic { background:#e1f7ec; color:#187c4b; }
+.status {
+  text-align:center;
+  margin: 18px 0;
+  min-height: 30px;
+  font-weight:bold;
+}
+.result {
+  display:none;
+  text-align:center;
+  background:#edfff5;
+  border-radius:20px;
+  padding:25px;
+  margin-top:20px;
+}
+.result h2 { color:#219966; font-size:35px; }
+.small { color:#777; font-size:13px; text-align:center; }
+select {
+  width:100%;
+  padding:13px;
+  border:2px solid #ded9f4;
+  border-radius:12px;
+  font-size:16px;
+  margin:15px 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🌸 Mission Bonjour !</h1>
+  <p class="subtitle">Lis le dialogue à voix haute et gagne tes étoiles !</p>
+
+  <label for="dialogueSelect"><b>Choisis ton dialogue :</b></label>
+  <select id="dialogueSelect"></select>
+
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="small" id="progressText"></div>
+
+  <div class="dialogue">
+    <h3 id="dialogueTitle"></h3>
+    <div id="lines"></div>
+  </div>
+
+  <div class="status" id="status">
+    Appuie sur le micro et lis la première phrase !
+  </div>
+
+  <div class="controls">
+    <button class="secondary" id="previousBtn">← Précédent</button>
+    <button class="mic" id="micBtn">🎤 Lire à voix haute</button>
+    <button class="secondary" id="listenBtn">🔊 Écouter</button>
+    <button class="primary" id="nextBtn">Suivant →</button>
+  </div>
+
+  <div class="result" id="result">
+    <h2>BRAVOOOO ! 🎉</h2>
+    <p>Félicitations ! Tu as terminé le dialogue !</p>
+    <p>Tu peux passer au dialogue suivant.</p>
+    <button class="primary" id="nextDialogueBtn">Dialogue suivant →</button>
+  </div>
+
+  <p class="small">
+    Conseil : utilise Chrome et autorise l'accès au microphone.
+  </p>
+</div>
+
+<script>
+const dialogues = [
+{
+ title:"Dialogue 1 — Les salutations (formel)",
+ lines:[
+ "Bonjour, Monsieur !",
+ "Bonjour, Madame !",
+ "Comment allez-vous ?",
+ "Très bien, merci. Et vous ?",
+ "Très bien, merci.",
+ "Au revoir, Madame !",
+ "Au revoir, Monsieur !"
+ ]
+},
+{
+ title:"Dialogue 2 — Les salutations (familier)",
+ lines:[
+ "Salut, Julie !",
+ "Salut, Paul !",
+ "Ça va ?",
+ "Oui, ça va, merci. Et toi ?",
+ "Ça va bien, merci !",
+ "À plus !",
+ "À plus !"
+ ]
+},
+{
+ title:"Dialogue 3 — Se présenter (formel)",
+ lines:[
+ "Bonjour, Madame !",
+ "Bonjour, Monsieur !",
+ "Comment vous appelez-vous ?",
+ "Je m’appelle Sophie Martin. Et vous ?",
+ "Je m’appelle Paul Bernard.",
+ "Enchantée !",
+ "Enchanté !"
+ ]
+},
+{
+ title:"Dialogue 4 — Se présenter (familier)",
+ lines:[
+ "Salut, Emma !",
+ "Salut, Lucas !",
+ "Comment tu t’appelles ?",
+ "Je m’appelle Emma. Et toi ?",
+ "Moi, c’est Lucas.",
+ "Enchantée !",
+ "Enchanté !"
+ ]
+},
+{
+ title:"Dialogue 5 — Habiter",
+ lines:[
+ "Bonjour, Monsieur ! Vous allez bien ?",
+ "Oui, très bien, merci. Et vous ?",
+ "Très bien, merci.",
+ "Vous habitez à Berlin ?",
+ "Non, j’habite à Paris.",
+ "Ah, d’accord !",
+ "Au revoir, Monsieur !",
+ "Au revoir !"
+ ]
+}
+];
+
+let dialogueIndex = 0;
+let currentLine = 0;
+let completed = [];
+let recognition = null;
+let listening = false;
+
+const select = document.getElementById("dialogueSelect");
+const linesBox = document.getElementById("lines");
+const statusBox = document.getElementById("status");
+const micBtn = document.getElementById("micBtn");
+
+dialogues.forEach((d,i)=>{
+ const option=document.createElement("option");
+ option.value=i;
+ option.textContent=d.title;
+ select.appendChild(option);
+});
+
+function normalize(text){
+ return text.toLowerCase()
+ .normalize("NFD")
+ .replace(/[\u0300-\u036f]/g,"")
+ .replace(/[’']/g," ")
+ .replace(/[.,!?;:]/g," ")
+ .replace(/\s+/g," ")
+ .trim();
+}
+
+function similarity(a,b){
+ const x=normalize(a).split(" ");
+ const y=normalize(b).split(" ");
+ const dp=Array.from({length:x.length+1},()=>[]);
+ for(let i=0;i<=x.length;i++) dp[i][0]=i;
+ for(let j=0;j<=y.length;j++) dp[0][j]=j;
+ for(let i=1;i<=x.length;i++){
+  for(let j=1;j<=y.length;j++){
+   dp[i][j]=Math.min(
+    dp[i-1][j]+1,
+    dp[i][j-1]+1,
+    dp[i-1][j-1]+(x[i-1]===y[j-1]?0:1)
+   );
+  }
+ }
+ const distance=dp[x.length][y.length];
+ return 1-distance/Math.max(x.length,y.length,1);
+}
+
+function render(){
+ const d=dialogues[dialogueIndex];
+ document.getElementById("dialogueTitle").textContent=d.title;
+ linesBox.innerHTML="";
+
+ d.lines.forEach((line,i)=>{
+  const div=document.createElement("div");
+  div.className="line";
+  if(completed[i]) div.classList.add("done");
+  if(i===currentLine && !completed[i]) div.classList.add("active");
+
+  const check=document.createElement("span");
+  check.className="check";
+  check.textContent=completed[i]?"✅":"⬜";
+
+  const text=document.createElement("span");
+  text.className="words";
+  text.textContent=line;
+
+  div.appendChild(check);
+  div.appendChild(text);
+  linesBox.appendChild(div);
+ });
+
+ const count=completed.filter(Boolean).length;
+ const percent=count/d.lines.length*100;
+ document.getElementById("progressBar").style.width=percent+"%";
+ document.getElementById("progressText").textContent=
+  count+" / "+d.lines.length+" phrases terminées";
+
+ document.getElementById("previousBtn").disabled=dialogueIndex===0;
+ document.getElementById("nextBtn").disabled=dialogueIndex===dialogues.length-1;
+
+ document.getElementById("result").style.display=
+  count===d.lines.length?"block":"none";
+
+ if(count===d.lines.length){
+  statusBox.textContent="Bravo ! Toutes les phrases sont terminées !";
+ } else {
+  statusBox.textContent="Lis la phrase "+(currentLine+1)+" à voix haute.";
+ }
+}
+
+function nextUnfinished(){
+ const index=completed.findIndex(v=>!v);
+ if(index!==-1) currentLine=index;
+ render();
+}
+
+function stopRecognition(){
+ if(recognition){
+  try{ recognition.stop(); }catch(e){}
+ }
+ listening=false;
+ micBtn.textContent="🎤 Lire à voix haute";
+}
+
+function startRecognition(){
+ if(!("SpeechRecognition" in window || "webkitSpeechRecognition" in window)){
+  statusBox.textContent="La reconnaissance vocale n'est pas disponible. Essaie avec Chrome.";
+  return;
+ }
+ if(completed[currentLine]){
+  nextUnfinished();
+  return;
+ }
+
+ stopRecognition();
+
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ recognition=new Speech();
+ recognition.lang="fr-FR";
+ recognition.continuous=false;
+ recognition.interimResults=false;
+ recognition.maxAlternatives=3;
+
+ listening=true;
+ micBtn.textContent="⏹ Écoute en cours...";
+ statusBox.textContent="Je t'écoute... Lis la phrase entière.";
+
+ recognition.onresult=function(event){
+  const alternatives=Array.from(event.results[0])
+   .map(item=>item.transcript);
+
+  const target=dialogues[dialogueIndex].lines[currentLine];
+  const best=Math.max(...alternatives.map(t=>similarity(t,target)));
+
+  if(best>=0.78){
+   completed[currentLine]=true;
+   statusBox.textContent="OUIIII ! Bravo ! 🎉";
+   render();
+   if(completed.every(Boolean)){
+    statusBox.textContent="BRAVOOOO ! Dialogue terminé ! 🎉";
+   } else {
+    currentLine=completed.findIndex(v=>!v);
+    render();
+    statusBox.textContent="Bravo ! Phrase validée. Continue !";
+   }
+  } else {
+   statusBox.textContent="Presque ! Réessaie cette phrase. 💪";
+  }
+ };
+
+ recognition.onerror=function(event){
+  if(event.error==="not-allowed"){
+   statusBox.textContent="Autorise le microphone dans ton navigateur.";
+  } else if(event.error==="no-speech"){
+   statusBox.textContent="Je n'ai rien entendu. Réessaie !";
+  } else {
+   statusBox.textContent="Une erreur est survenue. Réessaie.";
+  }
+ };
+
+ recognition.onend=function(){
+  listening=false;
+  micBtn.textContent="🎤 Lire à voix haute";
+ };
+
+ try{ recognition.start(); }
+ catch(e){
+  listening=false;
+  micBtn.textContent="🎤 Lire à voix haute";
+  statusBox.textContent="Réessaie dans un instant.";
+ }
+}
+
+function changeDialogue(index){
+ stopRecognition();
+ dialogueIndex=index;
+ currentLine=0;
+ completed=dialogues[index].lines.map(()=>false);
+ select.value=index;
+ document.getElementById("result").style.display="none";
+ render();
+}
+
+select.addEventListener("change",()=>{
+ changeDialogue(Number(select.value));
+});
+
+micBtn.addEventListener("click",()=>{
+ if(listening) stopRecognition();
+ else startRecognition();
+});
+
+document.getElementById("previousBtn").onclick=()=>{
+ if(dialogueIndex>0) changeDialogue(dialogueIndex-1);
+};
+
+document.getElementById("nextBtn").onclick=()=>{
+ if(dialogueIndex<dialogues.length-1) changeDialogue(dialogueIndex+1);
+};
+
+document.getElementById("listenBtn").onclick=()=>{
+ const text=dialogues[dialogueIndex].lines[currentLine];
+ speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(text);
+ utterance.lang="fr-FR";
+ utterance.rate=0.85;
+ speechSynthesis.speak(utterance);
+};
+
+document.getElementById("nextDialogueBtn").onclick=()=>{
+ if(dialogueIndex<dialogues.length-1){
+  changeDialogue(dialogueIndex+1);
+ }
+};
+
+changeDialogue(0);
+</script>
+</body>
+</html>
